@@ -2,7 +2,9 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
+[UpdateBefore(typeof(TransformSystemGroup))]
 partial struct BulletMoverSystem : ISystem
 {
     [BurstCompile]
@@ -20,27 +22,36 @@ partial struct BulletMoverSystem : ISystem
                 RefRO<Bullet>,
                 RefRO<Target>>().WithEntityAccess())
         {
+            if(target.ValueRO.targetEntity == Entity.Null)
+            {
+                entityCommandBuffer.DestroyEntity(entity);
+                continue;
+            }
             LocalTransform targetLocalTransform = SystemAPI.GetComponent<LocalTransform>(target.ValueRO.targetEntity);
+            ShootVictim targetShootVictim = SystemAPI.GetComponent<ShootVictim>(target.ValueRO.targetEntity);
+            float3 targetPosition = targetLocalTransform.TransformPoint(targetShootVictim.hitLocalPosition);
 
-            float distanceBeforSq = math.distancesq(localTransform.ValueRO.Position, targetLocalTransform.Position);
+            float distanceBeforSq = math.distancesq(localTransform.ValueRO.Position, targetPosition);
 
-            float3 moveDirection = targetLocalTransform.Position - localTransform.ValueRO.Position;
+            float3 moveDirection = targetPosition - localTransform.ValueRO.Position;
             moveDirection = math.normalize(moveDirection);
 
             localTransform.ValueRW.Position += moveDirection * bullet.ValueRO.speed * SystemAPI.Time.DeltaTime;
 
-            float distanceAfterSq = math.distancesq(localTransform.ValueRO.Position, targetLocalTransform.Position);
+            float distanceAfterSq = math.distancesq(localTransform.ValueRO.Position, targetPosition);
 
             if(distanceAfterSq > distanceBeforSq)
             {
-                localTransform.ValueRW.Position = targetLocalTransform.Position;
+                localTransform.ValueRW.Position = targetPosition;
             }
 
+            Debug.Log($"Bullet spawned at {localTransform.ValueRO.Position} moving to {targetPosition} with speed {bullet.ValueRO.speed}");
+
+
             float destroyDistanceSQ = .2f;
-            if (math.distancesq(localTransform.ValueRO.Position, targetLocalTransform.Position) < destroyDistanceSQ)
+            if (math.distancesq(localTransform.ValueRO.Position, targetPosition) < destroyDistanceSQ)
             {
                 RefRW<Health> targetHealth = SystemAPI.GetComponentRW<Health>(target.ValueRO.targetEntity);
-                int damageAmount = 1;
                 targetHealth.ValueRW.healthAmount -= bullet.ValueRO.damageAmount;
 
                 entityCommandBuffer.DestroyEntity(entity);

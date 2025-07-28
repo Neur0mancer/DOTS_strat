@@ -45,15 +45,12 @@ partial struct BulletMoverSystem : ISystem
                 localTransform.ValueRW.Position = targetPosition;
             }
 
-            Debug.Log($"Bullet spawned at {localTransform.ValueRO.Position} moving to {targetPosition} with speed {bullet.ValueRO.speed}");
-
-
             float destroyDistanceSQ = .2f;
             if (math.distancesq(localTransform.ValueRO.Position, targetPosition) < destroyDistanceSQ)
             {
                 RefRW<Health> targetHealth = SystemAPI.GetComponentRW<Health>(target.ValueRO.targetEntity);
                 targetHealth.ValueRW.healthAmount -= bullet.ValueRO.damageAmount;
-
+                targetHealth.ValueRW.onHealthChanged = true;
                 entityCommandBuffer.DestroyEntity(entity);
             }
         }

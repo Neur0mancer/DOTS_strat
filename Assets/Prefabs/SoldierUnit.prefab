@@ -127,7 +127,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -3797593787812977329, guid: 97401b0ec088b66439cdacb2c2e84edc, type: 3}
       propertyPath: range
-      value: 8
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: -3797593787812977329, guid: 97401b0ec088b66439cdacb2c2e84edc, type: 3}
       propertyPath: targetFaction
@@ -241,8 +241,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timerMax: 0.3
-  damageAmount: 1
-  attackDistance: 7
+  damageAmount: 5
+  attackDistance: 10
   bulletSpawnPositionTransform: {fileID: 7611093961012417045}
 --- !u!4 &4072365459326922228 stripped
 Transform:
